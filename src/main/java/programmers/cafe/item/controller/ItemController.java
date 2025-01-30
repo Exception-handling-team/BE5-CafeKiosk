@@ -10,7 +10,7 @@ import programmers.cafe.item.domain.dto.request.ItemRegisterDto;
 import programmers.cafe.item.domain.dto.response.ItemResponseDto;
 import programmers.cafe.item.domain.dto.response.ItemSimpleResponseDto;
 import programmers.cafe.item.domain.dto.response.ShowSimpleItem;
-import programmers.cafe.item.service.admin.ItemService;
+import programmers.cafe.item.service.ItemService;
 
 import java.util.List;
 

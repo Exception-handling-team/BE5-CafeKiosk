@@ -20,7 +20,7 @@ public class TradeItem {
     @JoinColumn(name = "trade_id")
     private Trade trade;
 
-    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.REMOVE) // Item 삭제 시 TradeItem도 삭제
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "item_id")
     private Item item;
 

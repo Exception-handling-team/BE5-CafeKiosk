@@ -2,6 +2,10 @@ package programmers.cafe.trade.domain.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -11,6 +15,7 @@ import java.util.List;
 @Builder
 @Getter
 @Table(name = "trade")
+@EntityListeners(AuditingEntityListener.class)
 public class Trade{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -22,7 +27,7 @@ public class Trade{
     private TradeStatus tradeStatus;
 
     @Setter
-    @OneToMany(mappedBy = "trade", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "trade")
     private List<TradeItem> tradeItems; // 거래에 포함된 아이템 목록
 
     @Setter
@@ -30,7 +35,14 @@ public class Trade{
 
 
     @Column(name = "tradeUUID")
+    @Setter
     private String tradeUUid;
 
-    private LocalDateTime tradeTime;
+    @CreatedDate
+    @Setter(AccessLevel.PRIVATE)
+    private LocalDateTime tradeRequestDate;
+
+    @LastModifiedDate
+    @Setter(AccessLevel.PRIVATE)
+    private LocalDateTime tradeUpdatedDate;
 }

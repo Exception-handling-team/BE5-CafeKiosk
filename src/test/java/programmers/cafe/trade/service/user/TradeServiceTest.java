@@ -11,7 +11,7 @@ import programmers.cafe.item.domain.dto.request.ItemRegisterDto;
 import programmers.cafe.item.domain.dto.response.ItemResponseDto;
 import programmers.cafe.item.domain.entity.ItemStatus;
 import programmers.cafe.item.repository.ItemRepository;
-import programmers.cafe.item.service.admin.ItemService;
+import programmers.cafe.item.service.ItemService;
 import programmers.cafe.trade.domain.dto.request.DeliverRequestDto;
 import programmers.cafe.trade.domain.dto.request.OrderRequestDto;
 import programmers.cafe.trade.domain.dto.request.PayRequestDto;

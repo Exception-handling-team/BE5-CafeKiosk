@@ -4,10 +4,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import programmers.cafe.exception.ItemNotFoundException;
-import programmers.cafe.exception.OverQuantityException;
-import programmers.cafe.exception.PayRefusedException;
-import programmers.cafe.exception.TradeNotFoundException;
+import programmers.cafe.exception.*;
 
 @ControllerAdvice
 public class GlobalExceptionHandler {
@@ -31,6 +28,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(TradeNotFoundException.class)
     public ResponseEntity<String> handleTradeNotFoundException(TradeNotFoundException ex) {
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler(TradeCommonException.class)
+    public ResponseEntity<String> handleTradeCommonException(TradeCommonException exception) {
+        return new ResponseEntity<>(exception.getMessage(), HttpStatus.NOT_FOUND);
     }
     // 다른 예외 처리 핸들러도 추가 가능
 }

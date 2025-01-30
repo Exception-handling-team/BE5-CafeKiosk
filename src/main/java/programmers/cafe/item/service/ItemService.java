@@ -1,4 +1,4 @@
-package programmers.cafe.item.service.admin;
+package programmers.cafe.item.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -111,6 +111,6 @@ public class ItemService {
     }
 
     private ShowSimpleItem convertToDto(Item item) {
-        return new ShowSimpleItem(item.getId(), item.getName(), item.getPrice());
+        return new ShowSimpleItem(item.getId(), item.getName(), item.getPrice(), item.getQuantity(), item.getStatus());
     }
 }

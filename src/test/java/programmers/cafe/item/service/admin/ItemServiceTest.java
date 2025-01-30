@@ -12,7 +12,7 @@ import programmers.cafe.item.domain.dto.request.ItemRegisterDto;
 import programmers.cafe.item.domain.dto.response.ItemResponseDto;
 import programmers.cafe.item.domain.dto.response.ShowSimpleItem;
 import programmers.cafe.item.domain.entity.ItemStatus;
-import programmers.cafe.item.repository.ItemRepository;
+import programmers.cafe.item.service.ItemService;
 
 import java.util.List;
 

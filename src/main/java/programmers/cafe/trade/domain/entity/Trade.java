@@ -26,9 +26,10 @@ public class Trade{
     @Enumerated(EnumType.STRING)
     private TradeStatus tradeStatus;
 
-    @Setter
-    @OneToMany(mappedBy = "trade")
-    private List<TradeItem> tradeItems; // 거래에 포함된 아이템 목록
+
+    @OneToMany(mappedBy = "trade", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<TradeItem> tradeItems;
+
 
     @Setter
     private Integer totalPrice;
@@ -45,4 +46,10 @@ public class Trade{
     @LastModifiedDate
     @Setter(AccessLevel.PRIVATE)
     private LocalDateTime tradeUpdatedDate;
+
+    public void addTradeItem(TradeItem tradeItem) {
+        this.tradeItems.add(tradeItem);
+        tradeItem.setTrade(this); // 연관관계 설정
+    }
+
 }

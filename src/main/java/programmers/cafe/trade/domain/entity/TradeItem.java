@@ -24,5 +24,11 @@ public class TradeItem {
     @JoinColumn(name = "item_id")
     private Item item;
 
+    private Integer price;
+
     private Integer quantity; // 해당 아이템의 수량
+
+    public void setPrice() {
+        this.price = this.item.getPrice();
+    }
 }

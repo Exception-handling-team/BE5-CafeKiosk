@@ -3,15 +3,14 @@ package programmers.cafe.trade.controller;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import programmers.cafe.trade.domain.dto.request.DeliverRequestDto;
-import programmers.cafe.trade.domain.dto.request.PayRequestDto;
-import programmers.cafe.trade.domain.dto.request.OrderRequestDto;
-import programmers.cafe.trade.domain.dto.request.RefundRequestDto;
+import programmers.cafe.trade.domain.dto.request.*;
+import programmers.cafe.trade.domain.dto.response.CancelResponseDto;
 import programmers.cafe.trade.domain.dto.response.DeliverResponseDto;
 import programmers.cafe.trade.domain.dto.response.PayResponseDto;
 import programmers.cafe.trade.domain.dto.response.OrderResponseDto;
@@ -19,6 +18,7 @@ import programmers.cafe.trade.service.user.TradeService;
 
 import java.util.List;
 
+@Slf4j
 @Tag(name = "상품 주문", description = "상품 주문, 결제, 수령")
 @RestController
 @RequiredArgsConstructor
@@ -56,5 +56,10 @@ public class TradeController {
     @PostMapping("/cancel")
     public ResponseEntity<PayResponseDto> cancelOrderPayment(RefundRequestDto requestDto) {
         return ResponseEntity.ok(service.cancelTrade(requestDto));
+    }
+    @PostMapping("/cancelV2")
+    public ResponseEntity<CancelResponseDto> cancelOrderPayment(@RequestBody CancelRequestDto cancelRequestDto) {
+        log.info("/cancelV2 execute");
+        return ResponseEntity.ok(service.cancelTradeV2(cancelRequestDto));
     }
 }

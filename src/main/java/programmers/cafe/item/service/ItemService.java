@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import programmers.cafe.exception.ItemNotFoundException;
+import programmers.cafe.global.exception.ItemNotFoundException;
 import programmers.cafe.item.domain.dto.request.ItemModifyInfoDto;
 import programmers.cafe.item.domain.dto.request.ItemRegisterDto;
 import programmers.cafe.item.domain.dto.response.ItemResponseDto;

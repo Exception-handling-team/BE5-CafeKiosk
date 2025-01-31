@@ -5,30 +5,32 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import programmers.cafe.exception.*;
+import programmers.cafe.global.exception.*;
 import programmers.cafe.item.domain.entity.Item;
 import programmers.cafe.item.domain.entity.ItemStatus;
 import programmers.cafe.item.repository.ItemRepository;
-import programmers.cafe.trade.domain.dto.request.DeliverRequestDto;
-import programmers.cafe.trade.domain.dto.request.PayRequestDto;
-import programmers.cafe.trade.domain.dto.request.OrderRequestDto;
-import programmers.cafe.trade.domain.dto.request.RefundRequestDto;
+import programmers.cafe.trade.domain.dto.request.*;
+import programmers.cafe.trade.domain.dto.request.CancelRequestDto.CancelItemRequest;
+import programmers.cafe.trade.domain.dto.response.CancelResponseDto;
 import programmers.cafe.trade.domain.dto.response.DeliverResponseDto;
 import programmers.cafe.trade.domain.dto.response.PayResponseDto;
 import programmers.cafe.trade.domain.dto.response.OrderResponseDto;
 import programmers.cafe.trade.domain.entity.Trade;
 import programmers.cafe.trade.domain.entity.TradeItem;
 import programmers.cafe.trade.domain.entity.TradeStatus;
-import programmers.cafe.trade.portone.domain.dto.RefundMessageResponse;
 import programmers.cafe.trade.portone.service.PortoneService;
 import programmers.cafe.trade.repository.TradeRepository;
 
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.text.BreakIterator;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static programmers.cafe.trade.domain.entity.TradeStatus.*;
 
@@ -46,7 +48,6 @@ public class TradeService {
      * 결제 성공 -> 상태 설정 PAY / 결제 실패 -> 상태 설정 REFUSED
      * 상품 수령 후 -> 상태 설정 END
      */
-
     @Transactional
     public OrderResponseDto transactionRequest(List<OrderRequestDto> dtoList) {
         boolean stockValidResult = dtoList.stream().allMatch(this::stockValidCheck);
@@ -54,61 +55,53 @@ public class TradeService {
             throw new OverQuantityException("요청한 상품 중 재고가 부족한 상품이 있습니다.");
         }
 
-
+        // Step 1: Trade 객체 생성
         Trade trade = Trade.builder()
                 .tradeStatus(BUY) // 거래 상태 초기화
+                .tradeItems(new ArrayList<>()) // 리스트 초기화
                 .build();
 
-        List<TradeItem> tradeItems = dtoList.stream().map(dto -> {
-            // Step 3: 각 TradeItem 생성
+        // Step 2: TradeItem 생성 및 연결
+        for (OrderRequestDto dto : dtoList) {
             Item item = itemRepository.findById(dto.getItemId())
                     .orElseThrow(() -> new ItemNotFoundException("해당 상품을 찾을 수 없음."));
 
-            System.out.println("origin item quantity : " + item.getQuantity());
-            System.out.println("purchase quantity : " + dto.getQuantity());
-            System.out.println("remain item quantity : " + (item.getQuantity() - dto.getQuantity()));
             // 재고 차감
             item.setQuantity(item.getQuantity() - dto.getQuantity());
+            item.autoCheckQuantityForSetStatus();
 
-            item.autoCheckQuantityForSetStatus(); // 수량을 확인하여 자동으로 판매중 / 품절의 상태를 변경하는 엔티티 메서드
-
-
-            System.out.println("after transaction remain item quantity : " + item.getQuantity());
-
-            // TradeItem 생성
-            return TradeItem.builder()
-                    .trade(trade)
+            // TradeItem 생성 및 연결
+            TradeItem tradeItem = TradeItem.builder()
+                    .trade(trade) // 연관관계 설정
                     .item(item)
                     .quantity(dto.getQuantity())
                     .build();
-        }).toList();
 
-        // Trade와 TradeItem 연결
-        trade.setTradeItems(tradeItems);
+            tradeItem.setPrice();
 
-        trade.setTotalPrice(calculateTotalPrice(tradeItems));
-
-
-        String purchaseUUID;
-
-        try {
-           purchaseUUID = portoneService.prePurchase(new BigDecimal(trade.getTotalPrice()));
-        } catch (IamportResponseException e) {
-            throw new RuntimeException(e);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+            trade.addTradeItem(tradeItem); // 연관관계 설정
         }
 
+        // Step 3: 총 가격 계산
+        trade.setTotalPrice(calculateTotalPrice(trade.getTradeItems()));
+
+        // Step 4: 결제 요청
+        String purchaseUUID;
+        try {
+            purchaseUUID = portoneService.prePurchase(new BigDecimal(trade.getTotalPrice()));
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
         trade.setTradeUUid(purchaseUUID);
 
-        // Trade 저장
+        // Step 5: Trade 저장 (cascade 설정이 되어있다면 TradeItem도 함께 저장됨)
         tradeRepository.save(trade);
 
-        // Step 4: 응답 객체 생성 및 반환
+        // Step 6: 응답 객체 생성 및 반환
         return new OrderResponseDto(
                 trade.getId(),
                 trade.getTradeStatus(),
-                calculateTotalPrice(tradeItems), // 총 가격 계산 메서드
+                trade.getTotalPrice(),
                 trade.getTradeUUid()
         );
     }
@@ -261,4 +254,55 @@ public class TradeService {
                 trade.getTotalPrice()
         );
     }
+
+
+    /**
+     *
+     * uuid -> trade 조회
+     * trade 에서 price, quantity 조회
+     * 요청 리스트에서 itemId, quantity 가 해당 trade 에 있는지 확인
+     *
+     * @param cancelRequestDto
+     * @return
+     */
+    @Transactional
+    public CancelResponseDto cancelTradeV2(CancelRequestDto cancelRequestDto) {
+        Trade trade = tradeRepository.findByTradeUUidWithItems(cancelRequestDto.getTradeUUID())
+                .orElseThrow(() -> new TradeNotFoundException("해당 거래를 찾을 수 없음."));
+
+        // 거래 상태 검증
+        TradeStatus status = trade.getTradeStatus();
+        if (status.equals(REFUSED) || status.equals(END)) {
+            throw new TradeCommonException("이미 취소되었거나 완료된 거래입니다.");
+        }
+
+        // 취소할 아이템 목록 가져오기
+
+        List<TradeItem> tradeItems = trade.getTradeItems(); // 이미 fetch join 되어 있음
+        System.out.println(tradeItems);
+
+        Map<Long, TradeItem> tradeItemMap = tradeItems.stream()
+                .collect(Collectors.toMap(ti -> ti.getItem().getId(), Function.identity()));
+        System.out.println(tradeItemMap);
+
+        // 취소 요청 검증
+        for (CancelRequestDto.CancelItemRequest requestItem : cancelRequestDto.getCancelItemList()) {
+            TradeItem tradeItem = tradeItemMap.get(requestItem.getItemId());
+
+            if (tradeItem == null) {
+                throw new TradeCommonException("취소 요청한 아이템이 거래 내역에 없음: " + requestItem.getItemId());
+            }
+
+            if (tradeItem.getQuantity() < requestItem.getQuantity()) {
+                throw new TradeCommonException("취소 요청 수량이 거래된 수량보다 많음: " + requestItem.getItemId());
+            }
+        }
+
+        // 취소 처리 (전체 취소 시 상태 변경)
+        trade.setTradeStatus(REFUSED);
+        tradeRepository.save(trade);
+
+        return new CancelResponseDto(trade.getTradeUUid(), "취소 완료");
+    }
+
 }

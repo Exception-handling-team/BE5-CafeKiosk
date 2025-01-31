@@ -1,4 +1,4 @@
-package programmers.cafe.exception;
+package programmers.cafe.global.exception;
 
 public class PayRefusedException extends RuntimeException {
     public PayRefusedException(String message) {

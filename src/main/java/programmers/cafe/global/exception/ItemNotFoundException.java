@@ -1,4 +1,4 @@
-package programmers.cafe.exception;
+package programmers.cafe.global.exception;
 
 public class ItemNotFoundException extends RuntimeException {
     public ItemNotFoundException(String message) {

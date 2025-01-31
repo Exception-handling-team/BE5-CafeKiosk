@@ -1,4 +1,4 @@
-package programmers.cafe.global;
+package programmers.cafe.global.controller;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.HttpHeaders;

@@ -216,10 +216,7 @@ public class TradeService {
     }
 
     @Transactional
-    public PayResponseDto cancelTrade(RefundRequestDto requestDto) {
-
-
-
+    public PayResponseDto cancelTradeBeforePay(RefundRequestDto requestDto) {
         Trade trade = tradeRepository.findByTradeUUid(requestDto.getTradeUUID())
                 .orElseThrow(() -> new TradeNotFoundException("해당 거래를 찾을 수 없음."));
 
@@ -233,20 +230,13 @@ public class TradeService {
         if (status.equals(END)) {
             throw new TradeCommonException("이미 완료된 거래입니다.");
         }
-
-        //실제 포트원 결제 취소 로직 실행
-        BigDecimal amount = requestDto.getAmount();
-        if (trade.getTotalPrice() < amount.intValue()) {
-            throw new PayRefusedException("결제 금액보다 환불금액이 더 큽니다.");
+        if (status.equals(PAY)) {
+            throw new TradeCommonException("결제가 이루어진 거래입니다. 판매자에게 문의하세요.");
         }
 
-        portoneService.refund(trade.getId(),requestDto.getAmount());
-
         //상품 관리 수량, 상태 복구 로직
-        System.out.println("[test] change status to refused : roll back quantity");
-        trade.setTradeStatus(REFUSED);
-        System.out.println("[test] method call : roll back quantity");
         rollBackProductQuantity(trade);
+        trade.setTradeStatus(REFUSED);
 
         return new PayResponseDto(
                 trade.getTradeUUid(),
@@ -255,18 +245,10 @@ public class TradeService {
         );
     }
 
-
-    /**
-     *
-     * uuid -> trade 조회
-     * trade 에서 price, quantity 조회
-     * 요청 리스트에서 itemId, quantity 가 해당 trade 에 있는지 확인
-     *
-     * @param cancelRequestDto
-     * @return
-     */
     @Transactional
-    public CancelResponseDto cancelTradeV2(CancelRequestDto cancelRequestDto) {
+    public CancelResponseDto cancelTradeAfterPay(CancelRequestDto cancelRequestDto) {
+        BigDecimal refundAmount = BigDecimal.ZERO; // 총 환불 금액
+
         Trade trade = tradeRepository.findByTradeUUidWithItems(cancelRequestDto.getTradeUUID())
                 .orElseThrow(() -> new TradeNotFoundException("해당 거래를 찾을 수 없음."));
 
@@ -274,6 +256,10 @@ public class TradeService {
         TradeStatus status = trade.getTradeStatus();
         if (status.equals(REFUSED) || status.equals(END)) {
             throw new TradeCommonException("이미 취소되었거나 완료된 거래입니다.");
+        }
+
+        if (status.equals(BUY)) {
+            throw new TradeCommonException("아직 결제가 이루어지지 않는 거래는 판매자가 취소 할 수 없습니다.");
         }
 
         // 취소할 아이템 목록 가져오기
@@ -296,11 +282,32 @@ public class TradeService {
             if (tradeItem.getQuantity() < requestItem.getQuantity()) {
                 throw new TradeCommonException("취소 요청 수량이 거래된 수량보다 많음: " + requestItem.getItemId());
             }
+
+            //취소한 수량만큼 Item 재고 늘리기
+            Item item = tradeItem.getItem();
+            item.setQuantity(item.getQuantity() + requestItem.getQuantity());
+            item.autoCheckQuantityForSetStatus(); // 품절/판매중 상태 자동 변경
+
+            //환불 금액 계산 (단가 × 취소 수량)
+            BigDecimal itemPrice = new BigDecimal(item.getPrice());
+            refundAmount = refundAmount.add(itemPrice.multiply(BigDecimal.valueOf(requestItem.getQuantity())));
+
+            //TradeItem 수량 업데이트 (부분 취소를 고려)
+            tradeItem.setQuantity(tradeItem.getQuantity() - requestItem.getQuantity());
         }
 
-        // 취소 처리 (전체 취소 시 상태 변경)
-        trade.setTradeStatus(REFUSED);
-        tradeRepository.save(trade);
+        // 전체 취소 시 상태 변경
+        boolean allItemsCancelled = tradeItems.stream().allMatch(tradeItem -> tradeItem.getQuantity() == 0);
+        if (allItemsCancelled) {
+            trade.setTradeStatus(REFUSED);
+        }
+
+        System.out.println(refundAmount);
+
+
+        //실제 포트원 결제 취소 로직 실행
+        portoneService.refund(trade.getId(),refundAmount);
+
 
         return new CancelResponseDto(trade.getTradeUUid(), "취소 완료");
     }

@@ -9,5 +9,4 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 public class RefundRequestDto {
     private String tradeUUID;
-    private BigDecimal amount;
 }

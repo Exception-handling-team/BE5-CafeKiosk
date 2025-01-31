@@ -53,13 +53,13 @@ public class TradeController {
         return ResponseEntity.ok(service.processDelivery(deliverRequestDto));
     }
 
-    @PostMapping("/cancel")
+    @PostMapping("/cancel/buy")
     public ResponseEntity<PayResponseDto> cancelOrderPayment(RefundRequestDto requestDto) {
-        return ResponseEntity.ok(service.cancelTrade(requestDto));
+        return ResponseEntity.ok(service.cancelTradeBeforePay(requestDto));
     }
-    @PostMapping("/cancelV2")
+    @PostMapping("/cancel/pay")
     public ResponseEntity<CancelResponseDto> cancelOrderPayment(@RequestBody CancelRequestDto cancelRequestDto) {
         log.info("/cancelV2 execute");
-        return ResponseEntity.ok(service.cancelTradeV2(cancelRequestDto));
+        return ResponseEntity.ok(service.cancelTradeAfterPay(cancelRequestDto));
     }
 }

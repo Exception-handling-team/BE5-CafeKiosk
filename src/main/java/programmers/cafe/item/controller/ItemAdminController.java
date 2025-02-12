@@ -1,5 +1,6 @@
 package programmers.cafe.item.controller;
 
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -17,9 +18,10 @@ import java.util.List;
 
 @Tag(name = "상품 관리", description = "상품 등록, 상품 정보 수정, 상품 상태 변경, 상품 삭제")
 @RestController
+@SecurityRequirement(name = "bearerAuth")
 @RequiredArgsConstructor
 @RequestMapping("/admin")
-public class ItemController {
+public class ItemAdminController {
     private final ItemService service;
 
     /**

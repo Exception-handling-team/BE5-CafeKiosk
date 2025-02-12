@@ -40,8 +40,12 @@ public class SecurityConfig {
         // JwtTokenFilter를 UsernamePasswordAuthenticationFilter 전에 추가
         http.addFilterBefore(new JwtTokenFilter(tokenProvider), UsernamePasswordAuthenticationFilter.class);
 
-        // 인가 설정: /question/* 요청은 인증 필요, 그 외는 모두 허용
+
         http.authorizeHttpRequests(authorize -> authorize
+                .requestMatchers("/h2-console/**")
+                .permitAll()
+                .requestMatchers("/auth/**")
+                .permitAll()
                 .requestMatchers("/admin/*").authenticated()
                 .anyRequest().permitAll()
         );

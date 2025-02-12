@@ -1,5 +1,6 @@
 package programmers.cafe.member.jwt.controller;
 
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -10,6 +11,7 @@ import programmers.cafe.member.jwt.domain.dto.*;
 import programmers.cafe.member.jwt.service.AuthService;
 
 @RestController
+@SecurityRequirement(name = "bearerAuth")
 @RequestMapping("/auth")
 @RequiredArgsConstructor
 public class AuthController {

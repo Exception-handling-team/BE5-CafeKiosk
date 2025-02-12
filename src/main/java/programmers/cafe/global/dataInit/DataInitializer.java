@@ -1,5 +1,6 @@
 package programmers.cafe.global.dataInit;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 import programmers.cafe.item.domain.dto.request.ItemRegisterDto;
 import programmers.cafe.item.domain.entity.Item;
@@ -8,13 +9,14 @@ import programmers.cafe.item.domain.entity.ItemStatus;
 import programmers.cafe.item.repository.ItemRepository;
 import lombok.RequiredArgsConstructor;
 
+import java.net.http.HttpClient;
+
 import static programmers.cafe.item.domain.entity.ItemCategory.DESSERT;
 import static programmers.cafe.item.domain.entity.ItemCategory.ETC;
 
 @Component
 @RequiredArgsConstructor
 public class DataInitializer implements CommandLineRunner {
-
     private final ItemRepository itemRepository;
 
     @Override

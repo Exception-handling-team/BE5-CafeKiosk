@@ -1,6 +1,7 @@
 package programmers.cafe.trade.controller;
 
 
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -47,15 +48,19 @@ public class TradeController {
     }
 
     @PostMapping("/deliver")
+    @SecurityRequirement(name = "bearerAuth")
     public ResponseEntity<ApiResponse<DeliverResponseDto>> deliver(@RequestBody DeliverRequestDto deliverRequestDto) {
         return ResponseEntity.ok(new ApiResponse<>("Deliver success",service.processDelivery(deliverRequestDto)));
     }
 
     @PostMapping("/cancel/buy")
+    @SecurityRequirement(name = "bearerAuth")
     public ResponseEntity<ApiResponse<PayResponseDto>> cancelOrderBeforePay(@RequestBody RefundRequestDto requestDto) {
         return ResponseEntity.ok(new ApiResponse<>("Cancel success when before pay",service.cancelTradeBeforePay(requestDto)));
     }
+
     @PostMapping("/cancel/pay")
+    @SecurityRequirement(name = "bearerAuth")
     public ResponseEntity<ApiResponse<CancelResponseDto>> cancelOrderAfterPay(@RequestBody CancelRequestDto cancelRequestDto) {
         return ResponseEntity.ok(new ApiResponse<>("Cancel success when after pay", service.cancelTradeAfterPay(cancelRequestDto)));
     }

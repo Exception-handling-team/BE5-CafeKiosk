@@ -14,7 +14,6 @@ import java.util.List;
 
 @Tag(name = "사용자용 메뉴판", description = "전체 상품 조회, 단건 조회, 카테고리별 조회")
 @RestController
-@SecurityRequirement(name = "bearerAuth")
 @RequiredArgsConstructor
 @RequestMapping("/user")
 public class ItemUserController {

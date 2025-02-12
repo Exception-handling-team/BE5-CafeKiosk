@@ -38,3 +38,8 @@ out/
 
 ### VS Code ###
 .vscode/
+
+
+### custom ###
+apiV1.json
+schema.d.ts

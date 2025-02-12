@@ -11,7 +11,6 @@ import programmers.cafe.member.jwt.domain.dto.*;
 import programmers.cafe.member.jwt.service.AuthService;
 
 @RestController
-@SecurityRequirement(name = "bearerAuth")
 @RequestMapping("/auth")
 @RequiredArgsConstructor
 public class AuthController {

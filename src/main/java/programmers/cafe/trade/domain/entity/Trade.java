@@ -37,7 +37,7 @@ public class Trade{
 
     @Column(name = "tradeUUID")
     @Setter
-    private String tradeUUid;
+    private String tradeUUID;
 
     @CreatedDate
     @Setter(AccessLevel.PRIVATE)

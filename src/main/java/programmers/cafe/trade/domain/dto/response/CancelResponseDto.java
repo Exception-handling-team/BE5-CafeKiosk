@@ -9,5 +9,5 @@ import java.util.List;
 @AllArgsConstructor
 public class CancelResponseDto {
     private String tradeUUID;
-    private String message;
+    private Integer refundPrice;
 }

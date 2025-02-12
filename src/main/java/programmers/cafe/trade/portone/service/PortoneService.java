@@ -15,24 +15,17 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import programmers.cafe.trade.domain.entity.Trade;
 import programmers.cafe.trade.domain.entity.TradeStatus;
-import programmers.cafe.trade.portone.domain.dto.RefundMessageResponse;
 import programmers.cafe.trade.portone.domain.dto.WebHook;
 import programmers.cafe.trade.repository.TradeRepository;
 
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.UUID;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class PortoneService {
-
     private final TradeRepository tradeRepository;
 
     @Value("${imp_key}")
@@ -48,11 +41,10 @@ public class PortoneService {
         iamportClient = new IamportClient(IMP_KEY, IMP_SECRET);
     }
 
-    public String prePurchase(BigDecimal amount) throws IamportResponseException, IOException {
-        String merchantUid = generateMerchantUid();
-        log.info("merchantUid = {}", merchantUid);
+    public void prePurchase(String uuid, BigDecimal amount) throws IamportResponseException, IOException {
+        log.info("merchantUid = {}", uuid);
 
-        IamportResponse<Prepare> prepareIamportResponse = iamportClient.postPrepare(new PrepareData(merchantUid, amount));
+        IamportResponse<Prepare> prepareIamportResponse = iamportClient.postPrepare(new PrepareData(uuid, amount));
 
         log.info("return code : {}", prepareIamportResponse.getCode());
         log.info("return message : {}", prepareIamportResponse.getMessage());
@@ -60,39 +52,25 @@ public class PortoneService {
         if (prepareIamportResponse.getCode() != 0) {
             throw new RuntimeException(prepareIamportResponse.getMessage());
         }
-        return merchantUid;
     }
 
-    public RefundMessageResponse refund(Long tradeId, BigDecimal amount) {
+
+    public void refund(Long tradeId, BigDecimal amount) {
         Trade refundTrade = tradeRepository.findById(tradeId).orElseThrow(() -> new RuntimeException("환불 요청에 대한 해당 거래를 찾을 수 없음"));
-        String merchantUid = refundTrade.getTradeUUid();
+        String merchantUid = refundTrade.getTradeUUID();
         try {
             CancelData cancelData = new CancelData(merchantUid, false, amount);
             cancelData.setChecksum(new BigDecimal(refundTrade.getTotalPrice()));
-            iamportClient.cancelPaymentByImpUid(cancelData);
+            IamportResponse<Payment> iamportResponse = iamportClient.cancelPaymentByImpUid(cancelData);
+            log.info("cancel amount : {}", iamportResponse.getResponse().getCancelAmount());
+            log.info("original amount : {}", iamportResponse.getResponse().getAmount());
+            refundTrade.setTotalPrice(refundTrade.getTotalPrice() - amount.intValue());
         } catch (IamportResponseException e) {
             throw new RuntimeException("port one 결제 취소 실패");
         } catch (IOException e) {
             throw new RuntimeException("취소 하고자 하는 거래 데이터를 찾을 수 없음");
         }
-
-        RefundMessageResponse response = RefundMessageResponse.builder()
-                .refundTradeId(tradeId)
-                .refundAmount(refundTrade.getTotalPrice())
-                .refundReason("판매자에 의한 취소")
-                .build();
-        return response;
     }
-
-
-    /**
-     * private String imp_uid; // : 결제번호
-     * private String merchant_uid; //: 주문번호
-     * private String status; //: 결제 결과
-     * private String cancellation_id;
-     *
-     * @return
-     */
 
     @Transactional
     public void validateWebHook(WebHook webHook) {
@@ -106,44 +84,19 @@ public class PortoneService {
             throw new RuntimeException(e);
         }
 
-        Trade findTrade = tradeRepository.findByTradeUUid(paymentIamportResponse.getResponse().getMerchantUid()).orElseThrow(() -> new RuntimeException("web hook 과 일치하는 거래 내역 없음."));
-        findTrade.setTradeStatus(TradeStatus.PAY);
-        if (!BigDecimal.valueOf(findTrade.getTotalPrice()).equals(paymentIamportResponse.getResponse().getAmount())) {
-            try {
-                IamportResponse<Payment> response = iamportClient.cancelPaymentByImpUid(new CancelData(findTrade.getTradeUUid(), false));
-                log.info("refund success : {},{},{}", response.getCode(), response.getMessage(), response.getResponse());
-            } catch (IamportResponseException e) {
-                throw new RuntimeException("port one 결제 취소 실패");
-            } catch (IOException e) {
-                throw new RuntimeException("취소 하고자 하는 데이터 찾을 수 없음");
-            } finally {
-                findTrade.setTradeStatus(TradeStatus.REFUSED);
-            }
+        Trade findTrade = tradeRepository.findByTradeUUID(paymentIamportResponse.getResponse().getMerchantUid()).orElseThrow(() -> new RuntimeException("web hook 과 일치하는 거래 내역 없음."));
+
+        if (webHook.getStatus().equals("cancelled")) {
+            findTrade.setTradeStatus(TradeStatus.REFUND);
+            log.info("response.cancelAmount:{}", paymentIamportResponse.getResponse().getCancelAmount());
+            findTrade.setTotalPrice(paymentIamportResponse.getResponse().getAmount().intValue() - paymentIamportResponse.getResponse().getCancelAmount().intValue());
+        }
+
+        if (webHook.getStatus().equals("paid")) {
+            findTrade.setTradeStatus(TradeStatus.PAY);
+            log.info("response.amount:{}", paymentIamportResponse.getResponse().getAmount());
         }
 
         log.info("web hook 인증 결과 이상 없음.");
-    }
-
-
-    public static String generateMerchantUid() {
-        SimpleDateFormat dateFormat = new SimpleDateFormat("yyMMddHHmmss");
-        String currentTime = dateFormat.format(new Date());
-        String uuid = UUID.randomUUID().toString();
-        byte[] uuidStringBytes = uuid.getBytes(StandardCharsets.UTF_8);
-        byte[] hashBytes;
-
-        try {
-            MessageDigest messageDigest = MessageDigest.getInstance("SHA-256");
-            hashBytes = messageDigest.digest(uuidStringBytes);
-        } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException(e);
-        }
-
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < 4; i++) {
-            sb.append(String.format("%02x", hashBytes[i]));
-        }
-
-        return currentTime + sb.toString();
     }
 }

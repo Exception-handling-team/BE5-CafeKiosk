@@ -8,7 +8,7 @@ import java.util.List;
 @Data
 @AllArgsConstructor
 public class CancelInfoDto {
-    private String uuid;
+    private String UUID;
     private Long tradeId;
     private List<CancelItemInfo> itemList;
     private Integer totalPrice;

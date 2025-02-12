@@ -8,9 +8,10 @@ import programmers.cafe.trade.domain.entity.Trade;
 import java.util.Optional;
 
 public interface TradeRepository extends JpaRepository<Trade, Long> {
-    Optional<Trade> findByTradeUUid(String tradeUUID);
+    Optional<Trade> findByTradeUUID(String tradeUUID);
 
-    @Query("SELECT t FROM Trade t JOIN FETCH t.tradeItems WHERE t.tradeUUid = :tradeUUID")
-    Optional<Trade> findByTradeUUidWithItems(@Param("tradeUUID") String tradeUUID);
+    @Query("SELECT t FROM Trade t JOIN FETCH t.tradeItems WHERE t.tradeUUID = :tradeUUID")
+    Optional<Trade> findByTradeUUIDWithItems(@Param("tradeUUID") String tradeUUID);
 
+    Optional<Trade> findTopByOrderByIdDesc();
 }

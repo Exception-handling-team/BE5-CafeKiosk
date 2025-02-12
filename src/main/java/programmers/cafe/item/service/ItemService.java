@@ -113,4 +113,14 @@ public class ItemService {
     private ShowSimpleItem convertToDto(Item item) {
         return new ShowSimpleItem(item.getId(), item.getName(), item.getPrice(), item.getQuantity(), item.getStatus());
     }
+
+    @Transactional
+    public Item findOne(Long id) {
+        return itemRepository.findById(id).orElseThrow(() -> new RuntimeException());
+    }
+
+    @Transactional
+    public Optional<Item> getLatestItem() {
+        return itemRepository.findTopByOrderByIdDesc();
+    }
 }

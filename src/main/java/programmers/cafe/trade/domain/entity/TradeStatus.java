@@ -4,6 +4,7 @@ public enum TradeStatus {
     BUY("거래 요청"),
     PAY("결제 완료"),
     END("거래 완료"),
+    REFUND("환불 완료"),
     REFUSED("거래 취소");
 
     private final String status;

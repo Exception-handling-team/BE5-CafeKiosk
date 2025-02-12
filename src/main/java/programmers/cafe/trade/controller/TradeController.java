@@ -4,11 +4,11 @@ package programmers.cafe.trade.controller;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import programmers.cafe.global.wrapper.response.ApiResponse;
 import programmers.cafe.trade.domain.dto.request.*;
 import programmers.cafe.trade.domain.dto.response.CancelResponseDto;
 import programmers.cafe.trade.domain.dto.response.DeliverResponseDto;
@@ -16,6 +16,7 @@ import programmers.cafe.trade.domain.dto.response.PayResponseDto;
 import programmers.cafe.trade.domain.dto.response.OrderResponseDto;
 import programmers.cafe.trade.service.user.TradeService;
 
+import java.net.URI;
 import java.util.List;
 
 @Slf4j
@@ -39,27 +40,23 @@ public class TradeController {
      */
 
     @PostMapping
-    public ResponseEntity<OrderResponseDto> order(@RequestBody List<OrderRequestDto> dtoList) {
-        return ResponseEntity.ok(service.transactionRequest(dtoList));
+    public ResponseEntity<ApiResponse<OrderResponseDto>> order(@RequestBody List<OrderRequestDto> dtoList) {
+        OrderResponseDto orderResponseDto = service.transactionRequest(dtoList);
+        ApiResponse<OrderResponseDto> apiResponse = new ApiResponse<>("Order created successfully", orderResponseDto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(apiResponse);
     }
 
-//    @PostMapping("/pay")
-//    public ResponseEntity<PayResponseDto> pay(PayRequestDto payRequestDto) {
-//        return ResponseEntity.ok(service.processPayment(payRequestDto));
-//    }
-
     @PostMapping("/deliver")
-    public ResponseEntity<DeliverResponseDto> deliver(DeliverRequestDto deliverRequestDto) {
-        return ResponseEntity.ok(service.processDelivery(deliverRequestDto));
+    public ResponseEntity<ApiResponse<DeliverResponseDto>> deliver(@RequestBody DeliverRequestDto deliverRequestDto) {
+        return ResponseEntity.ok(new ApiResponse<>("Deliver success",service.processDelivery(deliverRequestDto)));
     }
 
     @PostMapping("/cancel/buy")
-    public ResponseEntity<PayResponseDto> cancelOrderPayment(RefundRequestDto requestDto) {
-        return ResponseEntity.ok(service.cancelTradeBeforePay(requestDto));
+    public ResponseEntity<ApiResponse<PayResponseDto>> cancelOrderBeforePay(@RequestBody RefundRequestDto requestDto) {
+        return ResponseEntity.ok(new ApiResponse<>("Cancel success when before pay",service.cancelTradeBeforePay(requestDto)));
     }
     @PostMapping("/cancel/pay")
-    public ResponseEntity<CancelResponseDto> cancelOrderPayment(@RequestBody CancelRequestDto cancelRequestDto) {
-        log.info("/cancelV2 execute");
-        return ResponseEntity.ok(service.cancelTradeAfterPay(cancelRequestDto));
+    public ResponseEntity<ApiResponse<CancelResponseDto>> cancelOrderAfterPay(@RequestBody CancelRequestDto cancelRequestDto) {
+        return ResponseEntity.ok(new ApiResponse<>("Cancel success when after pay", service.cancelTradeAfterPay(cancelRequestDto)));
     }
 }

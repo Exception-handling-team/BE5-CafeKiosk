@@ -9,6 +9,7 @@ import programmers.cafe.trade.domain.entity.TradeStatus;
 @AllArgsConstructor
 @NoArgsConstructor
 public class PayResponseDto {
+    private Long tradeId;
     private String tradeUUID;
     private TradeStatus status;
     private Integer totalPrice;

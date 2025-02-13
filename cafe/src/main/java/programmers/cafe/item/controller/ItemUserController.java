@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.*;
 import programmers.cafe.global.wrapper.response.ApiResponse;
 import programmers.cafe.item.domain.dto.request.ItemCategoryDto;
 import programmers.cafe.item.domain.dto.response.ShowSimpleItem;
+import programmers.cafe.item.domain.entity.ItemCategory;
 import programmers.cafe.item.service.ItemService;
 
 import java.util.List;
@@ -24,10 +25,17 @@ public class ItemUserController {
         return ResponseEntity.ok(new ApiResponse<>("show all items",service.showAllItems()));
     }
 
-    @GetMapping("/items/cat")
-    public ResponseEntity<ApiResponse<List<ShowSimpleItem>>> showCategoryItem(@RequestBody ItemCategoryDto categoryDto) {
-        return ResponseEntity.ok(new ApiResponse<>("show category items", service.showCategoryItem(categoryDto.getCategory())));
-    }
+//    @PostMapping("/items/cat")
+//    public ResponseEntity<ApiResponse<List<ShowSimpleItem>>> showCategoryItem(@RequestBody ItemCategoryDto categoryDto) {
+//        return ResponseEntity.ok(new ApiResponse<>("show category items", service.showCategoryItem(categoryDto.getCategory())));
+//    }
+@GetMapping("/items/cat")
+public ResponseEntity<ApiResponse<List<ShowSimpleItem>>> showCategoryItem(@RequestParam("category") String category) {
+    return ResponseEntity.ok(
+            new ApiResponse<>("show category items", service.showCategoryItem(ItemCategory.valueOf(category)))
+    );
+}
+
 
     @GetMapping("/item")
     public ResponseEntity<ApiResponse<ShowSimpleItem>> showSingleItem(@RequestParam("id") Long id) {

@@ -468,13 +468,13 @@ export interface components {
             /** @enum {string} */
             status?: "ON_SALE" | "SOLD_OUT";
         };
-        ItemCategoryDto: {
-            /** @enum {string} */
-            category?: "BEVERAGE" | "DESSERT" | "ETC";
-        };
         ApiResponseShowSimpleItem: {
             message?: string;
             data?: components["schemas"]["ShowSimpleItem"];
+        };
+        ItemCategoryDto: {
+            /** @enum {string} */
+            category?: "BEVERAGE" | "DESSERT" | "ETC";
         };
         ApiResponseLong: {
             message?: string;
@@ -775,7 +775,7 @@ export interface operations {
     showCategoryItem: {
         parameters: {
             query: {
-                categoryDto: components["schemas"]["ItemCategoryDto"];
+                category: string;
             };
             header?: never;
             path?: never;

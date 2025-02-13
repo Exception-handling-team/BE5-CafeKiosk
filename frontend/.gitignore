@@ -43,3 +43,7 @@ next-env.d.ts
 #backend docs
 src/lib/backend/apiV1/schema.d.ts
 /src/lib/backend/apiV1/schema.d.ts
+
+node_modules
+package-lock.json
+package.json

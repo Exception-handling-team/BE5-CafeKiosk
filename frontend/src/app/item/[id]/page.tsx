@@ -1,32 +1,32 @@
-// app/item/[id]/page.tsx
 import { notFound } from "next/navigation";
-
-interface Item {
-  id: number;
-  name: string;
-  price: number;
-  quantity: number;
-  status: string;
-}
+import type { paths } from "../../../lib/backend/apiV1/schema.d.ts";
 
 interface Params {
   params: { id: string } | Promise<{ id: string }>;
 }
 
 export default async function ItemDetailPage({ params }: Params) {
-  // params가 Promise일 수 있으므로 await를 통해 먼저 해결합니다.
   const { id } = await params;
+  const numericId = Number(id);
 
-  const response = await fetch(`http://localhost:8080/user/item?id=${id}`, {
-    next: { revalidate: 60 }, // ISR 설정 (선택사항)
-  });
+  // auto-generated API 명세에 따른 GET 요청 (query parameter id: number)
+  const response = await fetch(
+    `http://localhost:8080/user/item?id=${numericId}`,
+    {
+      next: { revalidate: 60 },
+    }
+  );
 
   if (!response.ok) {
     return notFound();
   }
 
-  const rsData = await response.json();
-  const item: Item = rsData.data;
+  // API 응답을 타입 단언으로 지정합니다.
+  const result =
+    (await response.json()) as paths["/user/item"]["get"]["responses"]["200"]["content"]["*/*"];
+  const item = result.data;
+
+  if (!item) return notFound();
 
   return (
     <div className="p-6">

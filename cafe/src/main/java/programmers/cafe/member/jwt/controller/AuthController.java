@@ -18,7 +18,7 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping("/signup")
-    public ResponseEntity<UserResponseDto> signup(@RequestBody @NotBlank JoinRequest joinRequest) {
+    public ResponseEntity<UserResponseDto> signup(@RequestBody JoinRequest joinRequest) {
         return ResponseEntity.ok(authService.signup(joinRequest));
     }
 

@@ -1,6 +1,7 @@
 package programmers.cafe.member.jwt.controller;
 
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -17,7 +18,7 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping("/signup")
-    public ResponseEntity<UserResponseDto> signup(@RequestBody JoinRequest joinRequest) {
+    public ResponseEntity<UserResponseDto> signup(@RequestBody @NotBlank JoinRequest joinRequest) {
         return ResponseEntity.ok(authService.signup(joinRequest));
     }
 

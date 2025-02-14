@@ -25,17 +25,12 @@ public class ItemUserController {
         return ResponseEntity.ok(new ApiResponse<>("show all items",service.showAllItems()));
     }
 
-//    @PostMapping("/items/cat")
-//    public ResponseEntity<ApiResponse<List<ShowSimpleItem>>> showCategoryItem(@RequestBody ItemCategoryDto categoryDto) {
-//        return ResponseEntity.ok(new ApiResponse<>("show category items", service.showCategoryItem(categoryDto.getCategory())));
-//    }
-@GetMapping("/items/cat")
-public ResponseEntity<ApiResponse<List<ShowSimpleItem>>> showCategoryItem(@RequestParam("category") String category) {
-    return ResponseEntity.ok(
-            new ApiResponse<>("show category items", service.showCategoryItem(ItemCategory.valueOf(category)))
-    );
-}
-
+    @GetMapping("/items/cat")
+    public ResponseEntity<ApiResponse<List<ShowSimpleItem>>> showCategoryItem(@RequestParam("category") String category) {
+        return ResponseEntity.ok(
+                new ApiResponse<>("show category items", service.showCategoryItem(ItemCategory.valueOf(category)))
+        );
+    }
 
     @GetMapping("/item")
     public ResponseEntity<ApiResponse<ShowSimpleItem>> showSingleItem(@RequestParam("id") Long id) {

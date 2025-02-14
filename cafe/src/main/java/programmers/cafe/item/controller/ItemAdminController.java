@@ -45,7 +45,7 @@ public class ItemAdminController {
         return ResponseEntity.ok(new ApiResponse<>("show all items",service.showAllItems()));
     }
 
-    @GetMapping("/items/cat")
+    @PostMapping("/items/cat")
     public ResponseEntity<ApiResponse<List<ShowSimpleItem>>> showCategoryItem(@RequestBody ItemCategoryDto categoryDto) {
         return ResponseEntity.ok(new ApiResponse<>("show category items", service.showCategoryItem(categoryDto.getCategory())));
     }

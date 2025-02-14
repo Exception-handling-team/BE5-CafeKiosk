@@ -13,6 +13,7 @@ import programmers.cafe.member.domain.entity.Users;
 public class JoinRequest {
     private String loginId;
     private String password;
+    private String adminKey;
 
     public Users toEntity(String encodedPassword) {
         return Users.builder()

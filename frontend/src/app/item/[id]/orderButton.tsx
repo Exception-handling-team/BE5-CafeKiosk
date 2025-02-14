@@ -63,29 +63,33 @@ export default function OrderButton({ itemId, maxQuantity }: OrderButtonProps) {
   };
 
   return (
-    <div className="mt-4">
-      <label htmlFor="quantity" className="mr-2">
-        주문 수량:
-      </label>
-      <input
-        id="quantity"
-        type="number"
-        min={1}
-        max={maxQuantity}
-        value={quantity}
-        onChange={(e) => setQuantity(Number(e.target.value))}
-        className="border border-gray-300 p-1 mr-2 w-20"
-      />
-
+    <div className="mt-6 flex flex-col items-center">
+      <div className="flex items-center gap-4">
+        <label htmlFor="quantity" className="font-semibold text-lg">
+          주문 수량:
+        </label>
+        <input
+          id="quantity"
+          type="number"
+          min={1}
+          max={maxQuantity}
+          value={quantity}
+          onChange={(e) => setQuantity(Number(e.target.value))}
+          className="border border-gray-300 rounded-lg p-2 w-24 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+        />
+      </div>
       <button
         onClick={handleOrder}
         disabled={loading}
-        className="bg-blue-500 text-white px-4 py-2 rounded"
+        className="mt-4 bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700 transition-colors duration-300 disabled:opacity-50"
       >
         {loading ? "주문 중..." : "주문하기"}
       </button>
-
-      {message && <div className="mt-2 text-sm">{message}</div>}
+      {message && (
+        <div className="mt-3 text-lg font-semibold text-gray-700 text-center">
+          {message}
+        </div>
+      )}
     </div>
   );
 }

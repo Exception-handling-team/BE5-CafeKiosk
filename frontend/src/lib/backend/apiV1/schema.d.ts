@@ -180,6 +180,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/admin/items/cat": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["showCategoryItem"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/user/items": {
         parameters: {
             query?: never;
@@ -203,7 +219,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["showCategoryItem"];
+        get: operations["showCategoryItem_1"];
         put?: never;
         post?: never;
         delete?: never;
@@ -236,22 +252,6 @@ export interface paths {
             cookie?: never;
         };
         get: operations["showAllItem_1"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/admin/items/cat": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["showCategoryItem_1"];
         put?: never;
         post?: never;
         delete?: never;
@@ -420,6 +420,11 @@ export interface components {
         JoinRequest: {
             loginId?: string;
             password?: string;
+            adminKey?: string;
+        };
+        ApiResponseUserResponseDto: {
+            message?: string;
+            data?: components["schemas"]["UserResponseDto"];
         };
         UserResponseDto: {
             /** Format: int64 */
@@ -430,12 +435,12 @@ export interface components {
             accessToken?: string;
             refreshToken?: string;
         };
-        TokenDto: {
-            grantType?: string;
+        AccessTokenResponse: {
             accessToken?: string;
-            refreshToken?: string;
-            /** Format: int64 */
-            accessTokenExpireIn?: number;
+        };
+        ApiResponseAccessTokenResponse: {
+            message?: string;
+            data?: components["schemas"]["AccessTokenResponse"];
         };
         LoginRequest: {
             loginId?: string;
@@ -452,6 +457,10 @@ export interface components {
             category?: "BEVERAGE" | "DESSERT" | "ETC";
             /** Format: int32 */
             quantity?: number;
+        };
+        ItemCategoryDto: {
+            /** @enum {string} */
+            category?: "BEVERAGE" | "DESSERT" | "ETC";
         };
         ApiResponseListShowSimpleItem: {
             message?: string;
@@ -471,10 +480,6 @@ export interface components {
         ApiResponseShowSimpleItem: {
             message?: string;
             data?: components["schemas"]["ShowSimpleItem"];
-        };
-        ItemCategoryDto: {
-            /** @enum {string} */
-            category?: "BEVERAGE" | "DESSERT" | "ETC";
         };
         ApiResponseLong: {
             message?: string;
@@ -675,7 +680,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["UserResponseDto"];
+                    "*/*": components["schemas"]["ApiResponseUserResponseDto"];
                 };
             };
         };
@@ -699,7 +704,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["TokenDto"];
+                    "*/*": components["schemas"]["ApiResponseAccessTokenResponse"];
                 };
             };
         };
@@ -723,7 +728,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["TokenDto"];
+                    "*/*": components["schemas"]["ApiResponseAccessTokenResponse"];
                 };
             };
         };
@@ -752,6 +757,30 @@ export interface operations {
             };
         };
     };
+    showCategoryItem: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ItemCategoryDto"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseListShowSimpleItem"];
+                };
+            };
+        };
+    };
     showAllItem: {
         parameters: {
             query?: never;
@@ -772,7 +801,7 @@ export interface operations {
             };
         };
     };
-    showCategoryItem: {
+    showCategoryItem_1: {
         parameters: {
             query: {
                 category: string;
@@ -819,28 +848,6 @@ export interface operations {
     showAllItem_1: {
         parameters: {
             query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ApiResponseListShowSimpleItem"];
-                };
-            };
-        };
-    };
-    showCategoryItem_1: {
-        parameters: {
-            query: {
-                categoryDto: components["schemas"]["ItemCategoryDto"];
-            };
             header?: never;
             path?: never;
             cookie?: never;

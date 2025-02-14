@@ -1,17 +1,6 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import Link from "next/link";
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+import ClientLayout from "./ClientLayout"; // 클라이언트 컴포넌트 임포트
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -20,19 +9,14 @@ export const metadata: Metadata = {
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
+}) {
   return (
     <html lang="en">
-      <body className="min-h-[100dvh] flex flex-col">
-        <header className="bg-green-100 flex gap-5">
-          <Link href="/">MAIN</Link>
-          <Link href="/about">INFO</Link>
-          <Link href="/menu">MENU</Link>
-        </header>
-        <div className="flex-grow">{children}</div>
-        <footer className="bg-green-100">footer area!</footer>
+      <body>
+        {/* 클라이언트 컴포넌트로 감싸기 */}
+        <ClientLayout>{children}</ClientLayout>
       </body>
     </html>
   );
